@@ -18,7 +18,7 @@ public class Scraper {
 
     LinkedList<String> pages = new LinkedList<String>();
     LinkedList<String> links = new LinkedList<String>();
-    private String seedUrl = "https://en.wikipedia.org/wiki/Napoleon"; //let's use this as the default in case one isn't provided
+    private String seedUrl = "https://en.wikipedia.org/wiki/United_States"; //let's use this as the default in case one isn't provided
     private int errors = 0;
     private int pageWaitTimeMin = 2;
     private int pageWatTimeMax = 35;
@@ -42,14 +42,9 @@ public class Scraper {
 
     public void scrape() {
         Document doc = null;
-
-        //System.out.println(doc.toString());
-
         links.add(seedUrl);
-       // while (links.size() <= 4) {
-            //for (String listElement : links)
             int count = 0;
-            for (int i =0; i < links.size(); i++){
+            for (int i =0; i < links.size(); i++) {
                 //Get the page and the html
                 //This needs refactoring, will split into separate methods for each of these segments to keep things clean
                 try {
@@ -61,7 +56,7 @@ public class Scraper {
                     //get the html from the page
                     String listElement = "";
                     listElement = links.element();
-                    links.pop();
+                    System.out.println(links.pop().toString());
                     System.out.println("Current element: " + listElement);
                     doc = Jsoup.connect(listElement).get();
                     Elements elements = doc.getElementsByTag("a");
@@ -75,24 +70,31 @@ public class Scraper {
                         }
                     }
                     System.out.println("number of links: " + links.size());
-                    //create the file (if it doesnt already exist) and write the contents
-                    UrlFormatter formatter = new UrlFormatter();
-                    listElement = formatter.format(listElement);
-                    File file = new File("../Scraper/Pages/" + listElement);
-                    FileWriter myWriter = new FileWriter("../Scraper/Pages/" + listElement);// + seedUrl);
-                    myWriter.write(elements.toString());
-                    myWriter.close();
-                    //get all the subUrls form current url and them to the list
-
-                } catch (IOException | InterruptedException e) {
+                    System.out.println("Current links: " + links.toString());
+                    boolean result = store(listElement, elements);
+                } catch (InterruptedException | IOException e) {
                     //this will catch an exception with the page or with our sleep timer
                     e.printStackTrace();
                     doc = null;
                     Elements elements = null;
                 }
-
             }
-        //}
+    }
+    // This method will take our current page and write its contents to a file using our URL formatter
+    public boolean store(String listElement, Elements elements){
+        try{
+            UrlFormatter formatter = new UrlFormatter();
+            listElement = formatter.format(listElement);
+            File file = new File("../Scraper/Pages/" + listElement);
+            FileWriter myWriter = new FileWriter("../Scraper/Pages/" + listElement);// + seedUrl);
+            myWriter.write(elements.toString());
+            myWriter.close();
+            return true;
+        } catch (IOException f){
+            //log the failure
+            System.out.println("File save failed for " + listElement);
+            return false;
+        }
     }
 
 }
