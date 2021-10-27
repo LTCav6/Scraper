@@ -6,9 +6,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleToIntFunction;
 
@@ -22,6 +20,7 @@ public class Scraper {
     private int errors = 0;
     private int pageWaitTimeMin = 2;
     private int pageWatTimeMax = 35;
+    private List<String> oldUrls = new ArrayList<>();
 
     public Scraper() {
 
@@ -56,7 +55,8 @@ public class Scraper {
                     //get the html from the page
                     String listElement = "";
                     listElement = links.element();
-                    System.out.println(links.pop().toString());
+                    //remove the link that we are going to grab all the html, links from and add it to our old url arraylist
+                    oldUrls.add(links.pop());
                     System.out.println("Current element: " + listElement);
                     doc = Jsoup.connect(listElement).get();
                     Elements elements = doc.getElementsByTag("a");
@@ -64,9 +64,12 @@ public class Scraper {
                     for (Element element : elements) {
                         //System.out.println(sublinkCounter);
                         String absoluteUrl = element.attr("abs:href");
-                        if ((absoluteUrl.contains("en.wikipedia.org")) && (sublinkCounter < 10)) {
-                            sublinkCounter++;
-                            links.add(absoluteUrl);
+                        if ((absoluteUrl.contains("en.wikipedia.org")) && (sublinkCounter < 25)) {
+                            //only process non-duplicates
+                            if (!oldUrls.contains(absoluteUrl)){
+                                sublinkCounter++;
+                                links.add(absoluteUrl);
+                            }
                         }
                     }
                     System.out.println("number of links: " + links.size());
